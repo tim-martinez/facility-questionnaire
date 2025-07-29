@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { SECTIONS } from './components/sections.js';
 import {
   checkSectionCompletion,
-  submitQuestionnaire,
+  generateEmailBody,
 } from './components/formUtils.js';
 
 // Progress Bar Component
@@ -248,7 +248,7 @@ const NavigationButtons = ({
   totalSections,
   onPrevious,
   onNext,
-  onSubmit,
+  mailtoUrl,
 }) => (
   <div className="navigation">
     <button
@@ -261,10 +261,10 @@ const NavigationButtons = ({
     </button>
 
     {currentSection === totalSections - 1 ? (
-      <button onClick={onSubmit} className="nav-button submit">
+      <a href={mailtoUrl} className="nav-button submit">
         <span>📧</span>
         <span>Submit Questionnaire</span>
-      </button>
+      </a>
     ) : (
       <button onClick={onNext} className="nav-button primary">
         <span>Next</span>
@@ -281,7 +281,7 @@ const FormContent = ({
   completedSections,
   onInputChange,
   onNavigate,
-  onSubmit,
+  mailtoUrl,
 }) => {
   const section = SECTIONS[currentSection];
 
@@ -325,7 +325,7 @@ const FormContent = ({
             onNext={() =>
               onNavigate(Math.min(SECTIONS.length - 1, currentSection + 1))
             }
-            onSubmit={onSubmit}
+            mailtoUrl={mailtoUrl}
           />
         </div>
       </div>
@@ -372,8 +372,17 @@ const AirTrafficQuestionnaire = () => {
     setCompletedSections(completed);
   }, [formData]);
 
-  const handleSubmit = () => {
-    submitQuestionnaire(formData);
+  // Generate mailto URL dynamically
+  const generateMailtoUrl = () => {
+    const emailBody = generateEmailBody(formData);
+    const subject = `Air Traffic Facility Questionnaire - ${
+      formData['facility-info']?.['facility-name'] || 'Unknown Facility'
+    }`;
+    const recipientEmail = 'timothy.perry151@gmail.com';
+    
+    return `mailto:${recipientEmail}?subject=${encodeURIComponent(
+      subject
+    )}&body=${encodeURIComponent(emailBody)}`;
   };
 
   const progress = (completedSections.size / SECTIONS.length) * 100;
@@ -397,7 +406,7 @@ const AirTrafficQuestionnaire = () => {
           completedSections={completedSections}
           onInputChange={handleInputChange}
           onNavigate={setCurrentSection}
-          onSubmit={handleSubmit}
+          mailtoUrl={generateMailtoUrl()}
         />
       </div>
     </div>

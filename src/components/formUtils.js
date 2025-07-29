@@ -51,11 +51,12 @@ export const submitQuestionnaire = (formData) => {
   }`;
 
   // CHANGE THIS EMAIL ADDRESS TO YOUR DESIRED RECIPIENT
-  const recipientEmail = 'your-email@example.com';
+  const recipientEmail = 'timothy.perry151@gmail.com';
 
   const mailtoLink = `mailto:${recipientEmail}?subject=${encodeURIComponent(
     subject
   )}&body=${encodeURIComponent(emailBody)}`;
 
+  // Use location.href for better browser compatibility with mailto links
   window.location.href = mailtoLink;
 };
