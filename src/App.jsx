@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { SECTIONS } from './components/sections.js';
 import {
   checkSectionCompletion,
-  generateEmailBody,
 } from './components/formUtils.js';
 
 // Progress Bar Component
@@ -248,7 +247,7 @@ const NavigationButtons = ({
   totalSections,
   onPrevious,
   onNext,
-  mailtoUrl,
+  onSubmit,
 }) => (
   <div className="navigation">
     <button
@@ -263,14 +262,7 @@ const NavigationButtons = ({
     {currentSection === totalSections - 1 ? (
       <button 
         className="nav-button submit"
-        onClick={() => {
-          // Create a temporary anchor and click it
-          const link = document.createElement('a');
-          link.href = mailtoUrl;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-        }}
+        onClick={onSubmit}
       >
         <span>📧</span>
         <span>Submit Questionnaire</span>
@@ -291,7 +283,7 @@ const FormContent = ({
   completedSections,
   onInputChange,
   onNavigate,
-  mailtoUrl,
+  onSubmit,
 }) => {
   const section = SECTIONS[currentSection];
 
@@ -335,7 +327,7 @@ const FormContent = ({
             onNext={() =>
               onNavigate(Math.min(SECTIONS.length - 1, currentSection + 1))
             }
-            mailtoUrl={mailtoUrl}
+            onSubmit={onSubmit}
           />
         </div>
       </div>
@@ -382,30 +374,32 @@ const AirTrafficQuestionnaire = () => {
     setCompletedSections(completed);
   }, [formData]);
 
-  // Generate mailto URL dynamically
-  const generateMailtoUrl = () => {
-    const emailBody = generateEmailBody(formData);
-    const subject = `Air Traffic Facility Questionnaire - ${
-      formData['facility-info']?.['facility-name'] || 'Unknown Facility'
-    }`;
-    const recipientEmail = 'timothy.perry151@gmail.com';
-    
-    // Create basic mailto first to test
-    const basicMailto = `mailto:${recipientEmail}?subject=${encodeURIComponent(subject)}`;
-    
-    // Check if full URL would be too long (2048 char limit)
-    const fullUrl = `${basicMailto}&body=${encodeURIComponent(emailBody)}`;
-    
-    if (fullUrl.length > 2000) {
-      // Use shortened body
-      const shortBody = "Please see attached questionnaire data.\n\n" + 
-        "Facility: " + (formData['facility-info']?.['facility-name'] || 'Unknown') + "\n" +
-        "Type: " + (formData['facility-info']?.['facility-type'] || 'Unknown') + "\n\n" +
-        "Full data was too long for email. Please contact for complete information.";
-      return `${basicMailto}&body=${encodeURIComponent(shortBody)}`;
+  // Submit questionnaire via PHP endpoint
+  const submitQuestionnaire = async () => {
+    try {
+      // Replace this URL with your partner's PHP endpoint
+      const response = await fetch('https://yourserver.com/send-questionnaire.php', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          formData,
+          recipient: 'timothy.perry151@gmail.com' 
+        }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        alert('Questionnaire sent successfully!');
+      } else {
+        alert(`Error: ${result.message || 'Failed to send'}`);
+      }
+    } catch (error) {
+      console.error('Submit error:', error);
+      alert('Failed to send questionnaire. Please try again.');
     }
-    
-    return fullUrl;
   };
 
   const progress = (completedSections.size / SECTIONS.length) * 100;
@@ -429,7 +423,7 @@ const AirTrafficQuestionnaire = () => {
           completedSections={completedSections}
           onInputChange={handleInputChange}
           onNavigate={setCurrentSection}
-          mailtoUrl={generateMailtoUrl()}
+          onSubmit={submitQuestionnaire}
         />
       </div>
     </div>
