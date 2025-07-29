@@ -261,10 +261,20 @@ const NavigationButtons = ({
     </button>
 
     {currentSection === totalSections - 1 ? (
-      <a href={mailtoUrl} className="nav-button submit">
+      <button 
+        className="nav-button submit"
+        onClick={() => {
+          // Create a temporary anchor and click it
+          const link = document.createElement('a');
+          link.href = mailtoUrl;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        }}
+      >
         <span>📧</span>
         <span>Submit Questionnaire</span>
-      </a>
+      </button>
     ) : (
       <button onClick={onNext} className="nav-button primary">
         <span>Next</span>
