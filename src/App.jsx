@@ -390,9 +390,22 @@ const AirTrafficQuestionnaire = () => {
     }`;
     const recipientEmail = 'timothy.perry151@gmail.com';
     
-    return `mailto:${recipientEmail}?subject=${encodeURIComponent(
-      subject
-    )}&body=${encodeURIComponent(emailBody)}`;
+    // Create basic mailto first to test
+    const basicMailto = `mailto:${recipientEmail}?subject=${encodeURIComponent(subject)}`;
+    
+    // Check if full URL would be too long (2048 char limit)
+    const fullUrl = `${basicMailto}&body=${encodeURIComponent(emailBody)}`;
+    
+    if (fullUrl.length > 2000) {
+      // Use shortened body
+      const shortBody = "Please see attached questionnaire data.\n\n" + 
+        "Facility: " + (formData['facility-info']?.['facility-name'] || 'Unknown') + "\n" +
+        "Type: " + (formData['facility-info']?.['facility-type'] || 'Unknown') + "\n\n" +
+        "Full data was too long for email. Please contact for complete information.";
+      return `${basicMailto}&body=${encodeURIComponent(shortBody)}`;
+    }
+    
+    return fullUrl;
   };
 
   const progress = (completedSections.size / SECTIONS.length) * 100;
